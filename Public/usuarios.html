@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuarios</title>
+    <link rel="stylesheet" href="css/estilos.css">
+</head>
+
+<body>
+
+    <div class="panel">
+
+        <div class="encabezado">
+            <h1>Administración de usuarios</h1>
+
+            <button id="cerrarSesion">
+                Cerrar sesión
+            </button>
+        </div>
+
+        <button id="nuevoUsuario">
+            Nuevo usuario
+        </button>
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>Fecha de registro</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody id="tablaUsuarios"></tbody>
+
+        </table>
+
+    </div>
+
+    <!-- Ventana para editar -->
+    <div id="modalEditar" class="modal">
+
+        <div class="modal-contenido">
+
+            <h2>Editar usuario</h2>
+
+            <form id="editarForm">
+
+                <input type="hidden" id="editarId">
+
+                <input
+                    type="text"
+                    id="editarNombre"
+                    placeholder="Nombre"
+                    required
+                >
+
+                <input
+                    type="email"
+                    id="editarCorreo"
+                    placeholder="Correo"
+                    required
+                >
+
+                <input
+                    type="password"
+                    id="editarPassword"
+                    placeholder="Nueva contraseña (opcional)"
+                >
+
+                <div class="modal-botones">
+
+                    <button type="submit">
+                        Guardar cambios
+                    </button>
+
+                    <button type="button" id="cancelarEdicion">
+                        Cancelar
+                    </button>
+
+                </div>
+
+            </form>
+
+            <p id="mensajeEditar"></p>
+
+        </div>
+
+    </div>
+
+    <script src="js/usuarios.js"></script>
+
+</body>
+</html>
