@@ -1,0 +1,314 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/estilos.css">
+    <title>Actividades | SistemaGuardería</title>
+</head>
+
+<body>
+
+<div id="menuPrincipal"></div>
+<script src="/menu.js" defer></script>
+
+    <main>
+        <section class="panel">
+            <h2>Registrar actividad</h2>
+
+            <form id="formActividad" class="formulario">
+                <div class="campo">
+                    <label for="nino_id">Niño</label>
+                    <select id="nino_id" required>
+                        <option value="">Cargando niños...</option>
+                    </select>
+                </div>
+
+                <div class="campo">
+                    <label for="tipo_actividad">Tipo de actividad</label>
+                    <select id="tipo_actividad" required>
+                        <option value="">Selecciona una actividad</option>
+                        <option value="Alimentación">Alimentación</option>
+                        <option value="Descanso">Descanso</option>
+                        <option value="Juego">Juego</option>
+                        <option value="Higiene">Higiene</option>
+                        <option value="Actividad educativa">Actividad educativa</option>
+                        <option value="Otra">Otra</option>
+                    </select>
+                </div>
+
+                <div class="campo">
+                    <label for="fecha_hora">Fecha y hora</label>
+                    <input type="datetime-local" id="fecha_hora">
+                </div>
+
+                <div class="campo ancho-completo">
+                    <label for="observaciones">Observaciones</label>
+                    <textarea
+                        id="observaciones"
+                        maxlength="3000"
+                        placeholder="Describe brevemente la actividad, si es necesario."
+                    ></textarea>
+                </div>
+
+                <div class="ancho-completo">
+                    <button type="submit" id="btnGuardar">
+                        Registrar actividad
+                    </button>
+                    <p id="mensajeFormulario" class="mensaje" role="status"></p>
+                </div>
+            </form>
+        </section>
+
+        <section class="panel">
+            <h2>Historial de actividades</h2>
+
+            <div class="filtros">
+                <label for="filtroNino">Filtrar por niño:</label>
+
+                <select id="filtroNino">
+                    <option value="">Todos los niños</option>
+                </select>
+
+                <button type="button" id="btnActualizar" class="secundario">
+                    Actualizar
+                </button>
+            </div>
+
+            <p id="mensajeHistorial" class="mensaje" role="status"></p>
+
+            <div class="tabla-contenedor">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Fecha y hora</th>
+                            <th>Niño</th>
+                            <th>Actividad</th>
+                            <th>Observaciones</th>
+                            <th>Registrado por</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaActividades">
+                        <tr>
+                            <td colspan="5" class="vacio">
+                                Cargando actividades...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const formActividad = document.getElementById('formActividad');
+        const selectNino = document.getElementById('nino_id');
+        const filtroNino = document.getElementById('filtroNino');
+        const tablaActividades = document.getElementById('tablaActividades');
+        const mensajeFormulario = document.getElementById('mensajeFormulario');
+        const mensajeHistorial = document.getElementById('mensajeHistorial');
+        const btnGuardar = document.getElementById('btnGuardar');
+
+        function mostrarMensaje(elemento, texto, esError = false) {
+            elemento.textContent = texto;
+            elemento.className = 'mensaje ' + (esError ? 'error' : 'exito');
+        }
+
+        async function peticion(url, opciones = {}) {
+            const respuesta = await fetch(url, {
+                credentials: 'same-origin',
+                ...opciones,
+                headers: {
+                    ...(opciones.headers || {})
+                }
+            });
+
+            if (respuesta.status === 401) {
+                window.location.href = '/login.html';
+                throw new Error('Tu sesión ha terminado. Inicia sesión nuevamente.');
+            }
+
+            const datos = await respuesta.json().catch(() => ({}));
+
+            if (!respuesta.ok) {
+                throw new Error(datos.error || 'No se pudo completar la solicitud.');
+            }
+
+            return datos;
+        }
+
+        function agregarOpcion(select, valor, texto) {
+            const opcion = document.createElement('option');
+            opcion.value = valor;
+            opcion.textContent = texto;
+            select.appendChild(opcion);
+        }
+
+        async function cargarNinos() {
+            try {
+                const ninos = await peticion('/api/ninos');
+
+                selectNino.replaceChildren();
+                agregarOpcion(selectNino, '', 'Selecciona un niño');
+
+                filtroNino.replaceChildren();
+                agregarOpcion(filtroNino, '', 'Todos los niños');
+
+                ninos
+                    .filter(nino => nino.estado === 'Activo')
+                    .forEach(nino => {
+                        agregarOpcion(
+                            selectNino,
+                            nino.id,
+                            nino.nombre_completo
+                        );
+
+                        agregarOpcion(
+                            filtroNino,
+                            nino.id,
+                            nino.nombre_completo
+                        );
+                    });
+            } catch (error) {
+                mostrarMensaje(mensajeFormulario, error.message, true);
+                selectNino.replaceChildren();
+                agregarOpcion(selectNino, '', 'No se pudieron cargar los niños');
+            }
+        }
+
+        function formatearFecha(fecha) {
+            if (!fecha) return '—';
+
+            const valor = new Date(fecha);
+
+            if (Number.isNaN(valor.getTime())) {
+                return fecha;
+            }
+
+            return valor.toLocaleString('es-MX');
+        }
+
+        function agregarCelda(fila, valor) {
+            const celda = document.createElement('td');
+            celda.textContent = valor ?? '—';
+            fila.appendChild(celda);
+        }
+
+        async function cargarActividades() {
+            mensajeHistorial.textContent = '';
+            tablaActividades.replaceChildren();
+
+            const idNino = filtroNino.value;
+            const url = idNino
+                ? '/api/actividades?nino_id=' + encodeURIComponent(idNino)
+                : '/api/actividades';
+
+            try {
+                const actividades = await peticion(url);
+
+                if (actividades.length === 0) {
+                    const fila = document.createElement('tr');
+                    const celda = document.createElement('td');
+
+                    celda.colSpan = 5;
+                    celda.className = 'vacio';
+                    celda.textContent = 'Todavía no hay actividades registradas.';
+
+                    fila.appendChild(celda);
+                    tablaActividades.appendChild(fila);
+                    return;
+                }
+
+                actividades.forEach(actividad => {
+                    const fila = document.createElement('tr');
+
+                    agregarCelda(fila, formatearFecha(actividad.fecha_hora));
+                    agregarCelda(fila, actividad.nombre_nino);
+                    agregarCelda(fila, actividad.tipo_actividad);
+                    agregarCelda(fila, actividad.observaciones || '—');
+                    agregarCelda(fila, actividad.registrado_por);
+
+                    tablaActividades.appendChild(fila);
+                });
+            } catch (error) {
+                mostrarMensaje(mensajeHistorial, error.message, true);
+
+                const fila = document.createElement('tr');
+                const celda = document.createElement('td');
+
+                celda.colSpan = 5;
+                celda.className = 'vacio';
+                celda.textContent = 'No fue posible cargar el historial.';
+
+                fila.appendChild(celda);
+                tablaActividades.appendChild(fila);
+            }
+        }
+
+        formActividad.addEventListener('submit', async evento => {
+            evento.preventDefault();
+
+            btnGuardar.disabled = true;
+            mostrarMensaje(mensajeFormulario, 'Registrando actividad...');
+
+            const datos = {
+                nino_id: selectNino.value,
+                tipo_actividad: document.getElementById('tipo_actividad').value,
+                fecha_hora: document.getElementById('fecha_hora').value || null,
+                observaciones: document.getElementById('observaciones').value.trim()
+            };
+
+            try {
+                const resultado = await peticion('/api/actividades', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(datos)
+                });
+
+                mostrarMensaje(mensajeFormulario, resultado.mensaje);
+                formActividad.reset();
+
+                await cargarActividades();
+            } catch (error) {
+                mostrarMensaje(mensajeFormulario, error.message, true);
+            } finally {
+                btnGuardar.disabled = false;
+            }
+        });
+
+        filtroNino.addEventListener('change', cargarActividades);
+
+        document.getElementById('btnActualizar').addEventListener(
+            'click',
+            cargarActividades
+        );
+
+        document.getElementById('cerrarSesion').addEventListener(
+            'click',
+            async evento => {
+                evento.preventDefault();
+
+                try {
+                    await peticion('/api/auth/logout', {
+                        method: 'POST'
+                    });
+
+                    window.location.href = '/login.html';
+                } catch (error) {
+                    mostrarMensaje(mensajeHistorial, error.message, true);
+                }
+            }
+        );
+
+        async function iniciarPantalla() {
+            await cargarNinos();
+            await cargarActividades();
+        }
+
+        iniciarPantalla();
+    </script>
+</body>
+</html>

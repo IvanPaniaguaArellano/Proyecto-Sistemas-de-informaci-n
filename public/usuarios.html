@@ -1,172 +1,18 @@
 
 <!DOCTYPE html>
 <html lang="es">
-<head>
+
+ <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/estilos.css">
     <title>Usuarios | Sistema Guardería</title>
-
-    <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            padding: 24px;
-            font-family: Arial, sans-serif;
-            background: #f3f6fa;
-            color: #263445;
-        }
-
-        .contenedor {
-            max-width: 1100px;
-            margin: auto;
-        }
-
-        .encabezado {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 16px;
-            flex-wrap: wrap;
-            margin-bottom: 24px;
-        }
-
-        h1 {
-            margin: 0 0 8px;
-        }
-
-        .panel {
-            background: white;
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 3px 12px #0000000d;
-            margin-bottom: 24px;
-        }
-
-        .boton {
-            border: none;
-            padding: 10px 15px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            background: #2563eb;
-            color: white;
-        }
-
-        .secundario {
-            background: #64748b;
-        }
-
-        .peligro {
-            background: #dc2626;
-        }
-
-        .boton:disabled {
-            opacity: .5;
-            cursor: not-allowed;
-        }
-
-        .formulario {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 16px;
-        }
-
-        .campo {
-            display: flex;
-            flex-direction: column;
-            gap: 7px;
-        }
-
-        .campo label {
-            font-weight: bold;
-        }
-
-        .campo input,
-        .campo select {
-            padding: 11px;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            width: 100%;
-        }
-
-        .acciones-formulario {
-            grid-column: 1 / -1;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .tabla-contenedor {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            padding: 12px;
-            border-bottom: 1px solid #e2e8f0;
-            text-align: left;
-        }
-
-        th {
-            background: #f8fafc;
-        }
-
-        .estado {
-            font-weight: bold;
-        }
-
-        .activo {
-            color: #15803d;
-        }
-
-        .inactivo {
-            color: #b91c1c;
-        }
-
-        .acciones {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        #mensaje {
-            margin: 14px 0;
-            font-weight: bold;
-        }
-
-        .nota {
-            color: #64748b;
-            font-size: 14px;
-        }
-
-        @media (max-width: 650px) {
-            body {
-                padding: 12px;
-            }
-
-            .panel {
-                padding: 16px;
-            }
-
-            .formulario {
-                grid-template-columns: 1fr;
-            }
-
-            .acciones-formulario {
-                grid-column: auto;
-            }
-        }
-    </style>
 </head>
 
 <body>
+    <div id="menuPrincipal"></div>
+    <script src="/menu.js" defer></script>
+    
     <main class="contenedor">
         <header class="encabezado">
             <div>

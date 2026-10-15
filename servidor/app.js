@@ -11,6 +11,7 @@ const conexion = require('./configuracion/db');
 
 const ninoRutas = require('./rutas/ninoRutas');
 const grupoRutas = require('./rutas/grupoRutas');
+const actividadRutas = require('./rutas/actividadRutas');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -67,6 +68,41 @@ app.get(
 );
 
 
+app.get(
+    '/actividades.html',
+    protegerPagina(),
+    (req, res) => {
+        const rolesPermitidos = [
+            'Administrador',
+            'Encargado',
+            'Enfermeria'
+        ];
+
+        if (!rolesPermitidos.includes(req.session.usuario.rol)) {
+            return res.status(403).send(
+                'No tienes permiso para acceder a esta página.'
+            );
+        }
+
+        res.sendFile(
+            path.join(__dirname, '..', 'public', 'actividades.html')
+        );
+    }
+);
+
+
+app.get(
+    '/inicio.html',
+    protegerPagina(),
+    (req, res) => {
+        res.sendFile(
+            path.join(__dirname, '..', 'public', 'inicio.html')
+        );
+    }
+);
+
+
+
 // Publica las páginas web.
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
@@ -76,7 +112,7 @@ app.use('/api/auth', authRutas);
 app.use('/api/ninos', ninoRutas);
 app.use('/api/grupos', grupoRutas);
 app.use('/api/usuarios', usuarioRutas);
-
+app.use('/api/actividades', actividadRutas);
 
 
 

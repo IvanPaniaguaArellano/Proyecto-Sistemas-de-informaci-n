@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/estilos.css">
+    <title>Inicio | SistemaGuardería</title>
+</head>
+
+<body>
+    <div id="menuPrincipal"></div>
+
+    <main>
+        <section class="bienvenida">
+            <h2 id="saludo">Bienvenido al sistema</h2>
+
+            <p>
+                Desde aquí puedes acceder a los módulos disponibles
+                según tu perfil de usuario.
+            </p>
+
+            <span class="usuario" id="datosUsuario">
+                Verificando sesión...
+            </span>
+        </section>
+
+        <section class="rejilla">
+            <article class="tarjeta">
+                <div class="icono">👶</div>
+                <h3>Gestión de niños</h3>
+                <p>
+                    Consulta los niños registrados, revisa sus datos
+                    y registra nuevos ingresos.
+                </p>
+                <a class="enlace" href="/ninos.html">Abrir módulo</a>
+            </article>
+
+            <article class="tarjeta">
+                <div class="icono">📋</div>
+                <h3>Actividades diarias</h3>
+                <p>
+                    Registra alimentación, descanso, juegos, higiene
+                    y actividades educativas.
+                </p>
+                <a class="enlace" href="/actividades.html">Abrir módulo</a>
+            </article>
+
+            <article class="tarjeta oculto" id="tarjetaUsuarios">
+                <div class="icono">👥</div>
+                <h3>Gestión de usuarios</h3>
+                <p>
+                    Administra las cuentas, los roles y el estado
+                    de acceso de los usuarios.
+                </p>
+                <a class="enlace" href="/usuarios.html">Abrir módulo</a>
+            </article>
+
+            <article class="tarjeta oculto" id="tarjetaBitacora">
+                <div class="icono">🕒</div>
+                <h3>Bitácora del sistema</h3>
+                <p>
+                    Consulta el registro de acciones realizadas
+                    por los usuarios.
+                </p>
+                <a class="enlace" href="/bitacora.html">Abrir módulo</a>
+            </article>
+        </section>
+    </main>
+
+    <footer>
+        SistemaGuardería · Panel principal
+    </footer>
+
+    <script src="/menu.js" defer></script>
+
+    <script>
+        async function cargarSesion() {
+            try {
+                const respuesta = await fetch('/api/auth/sesion', {
+                    credentials: 'same-origin'
+                });
+
+                if (respuesta.status === 401) {
+                    window.location.replace('/login.html');
+                    return;
+                }
+
+                if (!respuesta.ok) {
+                    throw new Error('No se pudo verificar la sesión.');
+                }
+
+                const datos = await respuesta.json();
+
+                if (!datos.autenticado || !datos.usuario) {
+                    window.location.replace('/login.html');
+                    return;
+                }
+
+                const usuario = datos.usuario;
+
+                document.getElementById('saludo').textContent =
+                    '¡Bienvenido, ' +
+                    (usuario.nombre || usuario.usuario || 'usuario') +
+                    '!';
+
+                document.getElementById('datosUsuario').textContent =
+                    'Rol: ' + usuario.rol;
+
+                const esAdministrador =
+                    usuario.rol === 'Administrador';
+
+                document.getElementById('tarjetaUsuarios')
+                    .classList.toggle('oculto', !esAdministrador);
+
+                document.getElementById('tarjetaBitacora')
+                    .classList.toggle('oculto', !esAdministrador);
+
+            } catch (error) {
+                document.getElementById('saludo').textContent =
+                    'No se pudo verificar tu sesión';
+
+                document.getElementById('datosUsuario').textContent =
+                    error.message;
+            }
+        }
+
+        cargarSesion();
+    </script>
+</body>
+</html>
