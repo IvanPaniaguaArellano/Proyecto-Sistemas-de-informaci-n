@@ -1,0 +1,514 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuarios | Sistema Guardería</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 24px;
+            font-family: Arial, sans-serif;
+            background: #f3f6fa;
+            color: #263445;
+        }
+
+        .contenedor {
+            max-width: 1100px;
+            margin: auto;
+        }
+
+        .encabezado {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            margin: 0 0 8px;
+        }
+
+        .panel {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px #0000000d;
+            margin-bottom: 24px;
+        }
+
+        .boton {
+            border: none;
+            padding: 10px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            background: #2563eb;
+            color: white;
+        }
+
+        .secundario {
+            background: #64748b;
+        }
+
+        .peligro {
+            background: #dc2626;
+        }
+
+        .boton:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+
+        .formulario {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .campo {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .campo label {
+            font-weight: bold;
+        }
+
+        .campo input,
+        .campo select {
+            padding: 11px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            width: 100%;
+        }
+
+        .acciones-formulario {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .tabla-contenedor {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: left;
+        }
+
+        th {
+            background: #f8fafc;
+        }
+
+        .estado {
+            font-weight: bold;
+        }
+
+        .activo {
+            color: #15803d;
+        }
+
+        .inactivo {
+            color: #b91c1c;
+        }
+
+        .acciones {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        #mensaje {
+            margin: 14px 0;
+            font-weight: bold;
+        }
+
+        .nota {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        @media (max-width: 650px) {
+            body {
+                padding: 12px;
+            }
+
+            .panel {
+                padding: 16px;
+            }
+
+            .formulario {
+                grid-template-columns: 1fr;
+            }
+
+            .acciones-formulario {
+                grid-column: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="contenedor">
+        <header class="encabezado">
+            <div>
+                <h1>Gestión de usuarios</h1>
+                <p>Administración de cuentas del Sistema Guardería</p>
+            </div>
+
+            <button id="btnCerrarSesion" class="boton secundario">
+                Cerrar sesión
+            </button>
+        </header>
+
+        <section class="panel">
+            <h2 id="tituloFormulario">Registrar usuario</h2>
+
+            <form id="formUsuario" class="formulario">
+                <div class="campo">
+                    <label for="nombre_completo">Nombre completo</label>
+                    <input id="nombre_completo" name="nombre_completo"
+                           maxlength="100" required>
+                </div>
+
+                <div class="campo">
+                    <label for="usuario">Nombre de usuario</label>
+                    <input id="usuario" name="usuario"
+                           maxlength="50" required>
+                </div>
+
+                <div class="campo">
+                    <label for="correo">Correo electrónico</label>
+                    <input id="correo" name="correo"
+                           type="email" maxlength="120" required>
+                </div>
+
+                <div class="campo">
+                    <label for="rol">Rol</label>
+                    <select id="rol" name="rol" required>
+                        <option value="">Selecciona un rol</option>
+                        <option value="Administrador">Administrador</option>
+                        <option value="Encargado">Encargado</option>
+                        <option value="Enfermeria">Enfermería</option>
+                    </select>
+                </div>
+
+                <div class="campo">
+                    <label for="contrasena">Contraseña</label>
+                    <input id="contrasena" name="contrasena"
+                           type="password" minlength="8"
+                           autocomplete="new-password">
+                    <span class="nota" id="notaContrasena">
+                        Mínimo 8 caracteres.
+                    </span>
+                </div>
+
+                <div class="campo">
+                    <label for="activo">Estado de la cuenta</label>
+                    <select id="activo" name="activo" required>
+                        <option value="1">Activo</option>
+                        <option value="0">Inactivo</option>
+                    </select>
+                </div>
+
+                <div class="acciones-formulario">
+                    <button type="submit" class="boton" id="btnGuardar">
+                        Registrar usuario
+                    </button>
+
+                    <button type="button" id="btnCancelar"
+                            class="boton secundario" hidden>
+                        Cancelar edición
+                    </button>
+                </div>
+            </form>
+
+            <p id="mensaje" role="status" aria-live="polite"></p>
+        </section>
+
+        <section class="panel">
+            <h2>Usuarios registrados</h2>
+            <p class="nota">
+                Las cuentas desactivadas se conservan en el sistema.
+            </p>
+
+            <div class="tabla-contenedor">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Usuario</th>
+                            <th>Correo</th>
+                            <th>Rol</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="tablaUsuarios">
+                        <tr>
+                            <td colspan="6">Cargando usuarios...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const formulario = document.getElementById('formUsuario');
+        const tabla = document.getElementById('tablaUsuarios');
+        const mensaje = document.getElementById('mensaje');
+        const tituloFormulario = document.getElementById('tituloFormulario');
+        const btnGuardar = document.getElementById('btnGuardar');
+        const btnCancelar = document.getElementById('btnCancelar');
+
+        let idEditando = null;
+
+        async function peticion(url, opciones = {}) {
+            const respuesta = await fetch(url, {
+                ...opciones,
+                headers: {
+                    ...(opciones.body ? {
+                        'Content-Type': 'application/json'
+                    } : {}),
+                    ...opciones.headers
+                }
+            });
+
+            const datos = await respuesta.json().catch(() => ({}));
+
+            if (!respuesta.ok) {
+                if (respuesta.status === 401) {
+                    window.location.href = '/login.html';
+                }
+
+                throw new Error(
+                    datos.error || 'No se pudo completar la operación.'
+                );
+            }
+
+            return datos;
+        }
+
+        async function comprobarAdministrador() {
+            const sesion = await peticion('/api/auth/sesion');
+
+            if (!sesion.autenticado ||
+                sesion.usuario?.rol !== 'Administrador') {
+                window.location.href = '/login.html';
+                return false;
+            }
+
+            return true;
+        }
+
+        async function cargarUsuarios() {
+            try {
+                const usuarios = await peticion('/api/usuarios');
+                tabla.replaceChildren();
+
+                if (usuarios.length === 0) {
+                    const fila = document.createElement('tr');
+                    const celda = document.createElement('td');
+                    celda.colSpan = 6;
+                    celda.textContent = 'No hay usuarios registrados.';
+                    fila.appendChild(celda);
+                    tabla.appendChild(fila);
+                    return;
+                }
+
+                usuarios.forEach(usuario => {
+                    const fila = document.createElement('tr');
+
+                    [
+                        usuario.nombre_completo,
+                        usuario.usuario,
+                        usuario.correo,
+                        usuario.rol
+                    ].forEach(valor => {
+                        const celda = document.createElement('td');
+                        celda.textContent = valor;
+                        fila.appendChild(celda);
+                    });
+
+                    const celdaEstado = document.createElement('td');
+                    const etiqueta = document.createElement('span');
+                    const estaActivo = Number(usuario.activo) === 1;
+
+                    etiqueta.textContent = estaActivo ? 'Activo' : 'Inactivo';
+                    etiqueta.className = estaActivo
+                        ? 'estado activo'
+                        : 'estado inactivo';
+
+                    celdaEstado.appendChild(etiqueta);
+                    fila.appendChild(celdaEstado);
+
+                    const celdaAcciones = document.createElement('td');
+                    const acciones = document.createElement('div');
+                    acciones.className = 'acciones';
+
+                    const btnEditar = document.createElement('button');
+                    btnEditar.className = 'boton';
+                    btnEditar.textContent = 'Editar';
+                    btnEditar.addEventListener('click', () => editarUsuario(usuario.id));
+
+                    acciones.appendChild(btnEditar);
+
+                    if (estaActivo) {
+                        const btnDesactivar = document.createElement('button');
+                        btnDesactivar.className = 'boton peligro';
+                        btnDesactivar.textContent = 'Desactivar';
+                        btnDesactivar.addEventListener('click', () =>
+                            desactivarUsuario(usuario.id, usuario.nombre_completo)
+                        );
+                        acciones.appendChild(btnDesactivar);
+                    }
+
+                    celdaAcciones.appendChild(acciones);
+                    fila.appendChild(celdaAcciones);
+                    tabla.appendChild(fila);
+                });
+            } catch (error) {
+                mensaje.textContent = error.message;
+            }
+        }
+
+        function limpiarFormulario() {
+            formulario.reset();
+            idEditando = null;
+
+            document.getElementById('activo').value = '1';
+            document.getElementById('contrasena').required = true;
+            document.getElementById('notaContrasena').textContent =
+                'Mínimo 8 caracteres.';
+
+            tituloFormulario.textContent = 'Registrar usuario';
+            btnGuardar.textContent = 'Registrar usuario';
+            btnCancelar.hidden = true;
+        }
+
+        async function editarUsuario(id) {
+            try {
+                const usuario = await peticion(`/api/usuarios/${id}`);
+
+                idEditando = id;
+
+                document.getElementById('nombre_completo').value =
+                    usuario.nombre_completo;
+                document.getElementById('usuario').value = usuario.usuario;
+                document.getElementById('correo').value = usuario.correo;
+                document.getElementById('rol').value = usuario.rol;
+                document.getElementById('activo').value =
+                    String(Number(usuario.activo));
+                document.getElementById('contrasena').value = '';
+                document.getElementById('contrasena').required = false;
+                document.getElementById('notaContrasena').textContent =
+                    'Déjala vacía para conservar la contraseña actual.';
+
+                tituloFormulario.textContent = 'Editar usuario';
+                btnGuardar.textContent = 'Guardar cambios';
+                btnCancelar.hidden = false;
+                mensaje.textContent = '';
+
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } catch (error) {
+                mensaje.textContent = error.message;
+            }
+        }
+
+        async function desactivarUsuario(id, nombre) {
+            if (!confirm(`¿Deseas desactivar la cuenta de ${nombre}?`)) {
+                return;
+            }
+
+            try {
+                const resultado = await peticion(`/api/usuarios/${id}`, {
+                    method: 'DELETE'
+                });
+
+                mensaje.textContent = resultado.mensaje;
+                if (idEditando === id) limpiarFormulario();
+
+                await cargarUsuarios();
+            } catch (error) {
+                mensaje.textContent = error.message;
+            }
+        }
+
+        formulario.addEventListener('submit', async evento => {
+            evento.preventDefault();
+            mensaje.textContent = '';
+
+            const datos = {
+                nombre_completo: document.getElementById('nombre_completo').value.trim(),
+                usuario: document.getElementById('usuario').value.trim(),
+                correo: document.getElementById('correo').value.trim(),
+                rol: document.getElementById('rol').value,
+                activo: Number(document.getElementById('activo').value)
+            };
+
+            const contrasena = document.getElementById('contrasena').value;
+            if (!idEditando || contrasena) {
+                datos.contrasena = contrasena;
+            }
+
+            try {
+                const resultado = await peticion(
+                    idEditando ? `/api/usuarios/${idEditando}` : '/api/usuarios',
+                    {
+                        method: idEditando ? 'PUT' : 'POST',
+                        body: JSON.stringify(datos)
+                    }
+                );
+
+                mensaje.textContent = resultado.mensaje;
+                limpiarFormulario();
+                await cargarUsuarios();
+            } catch (error) {
+                mensaje.textContent = error.message;
+            }
+        });
+
+        btnCancelar.addEventListener('click', limpiarFormulario);
+
+        document.getElementById('btnCerrarSesion').addEventListener('click', async () => {
+            try {
+                await peticion('/api/auth/logout', { method: 'POST' });
+            } finally {
+                window.location.href = '/login.html';
+            }
+        });
+
+        (async function iniciarPagina() {
+            try {
+                const esAdministrador = await comprobarAdministrador();
+
+                if (esAdministrador) {
+                    await cargarUsuarios();
+                }
+            } catch (error) {
+                mensaje.textContent = error.message;
+            }
+        })();
+    </script>
+</body>
+</html>

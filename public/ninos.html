@@ -1,0 +1,324 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de niños | SistemaGuarderia</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 30px 16px;
+            font-family: Arial, sans-serif;
+            background: #f3f6fb;
+            color: #243047;
+        }
+
+        main {
+            max-width: 900px;
+            margin: auto;
+        }
+
+        h1 {
+            margin-bottom: 8px;
+            color: #234b78;
+        }
+
+        .descripcion {
+            margin-bottom: 25px;
+            color: #64748b;
+        }
+
+        .tarjeta {
+            margin-bottom: 24px;
+            padding: 24px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px #0000000d;
+        }
+
+        .formulario {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .campo {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .campo.completo {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #cbd5e1;
+            border-radius: 7px;
+            font-size: 15px;
+        }
+
+        button {
+            padding: 12px 18px;
+            border: none;
+            border-radius: 7px;
+            background: #2563eb;
+            color: white;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .mensaje {
+            margin-top: 16px;
+            white-space: pre-line;
+        }
+
+        .error {
+            color: #b91c1c;
+        }
+
+        .exito {
+            color: #166534;
+        }
+
+        .tabla-contenedor {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: left;
+        }
+
+        th {
+            background: #f8fafc;
+        }
+
+        @media (max-width: 600px) {
+            .formulario {
+                grid-template-columns: 1fr;
+            }
+
+            .campo.completo {
+                grid-column: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+        <h1>Registro de niños</h1>
+        <p class="descripcion">
+            Sistema de administración de la guardería.
+        </p>
+
+        <section class="tarjeta">
+            <h2>Registrar nuevo niño</h2>
+
+            <form id="formularioNino" class="formulario">
+                <div class="campo completo">
+                    <label for="nombre_completo">Nombre completo</label>
+                    <input
+                        type="text"
+                        id="nombre_completo"
+                        name="nombre_completo"
+                        maxlength="100"
+                        required
+                    >
+                </div>
+
+                <div class="campo">
+                    <label for="fecha_nacimiento">Fecha de nacimiento</label>
+                    <input
+                        type="date"
+                        id="fecha_nacimiento"
+                        name="fecha_nacimiento"
+                        required
+                    >
+                </div>
+
+                <div class="campo">
+                    <label for="fecha_ingreso">Fecha de ingreso</label>
+                    <input
+                        type="date"
+                        id="fecha_ingreso"
+                        name="fecha_ingreso"
+                        required
+                    >
+                </div>
+
+                <div class="campo completo">
+                    <button type="submit">Registrar niño</button>
+                </div>
+            </form>
+
+            <p id="mensaje" class="mensaje" role="status"></p>
+        </section>
+
+        <section class="tarjeta">
+            <h2>Niños registrados</h2>
+
+            <div class="tabla-contenedor">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Fecha de nacimiento</th>
+                            <th>Fecha de ingreso</th>
+                            <th>Grupo</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="listaNinos">
+                        <tr>
+                            <td colspan="5">Cargando registros...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const formulario = document.getElementById('formularioNino');
+        const mensaje = document.getElementById('mensaje');
+        const listaNinos = document.getElementById('listaNinos');
+
+        const campoNacimiento = document.getElementById('fecha_nacimiento');
+        const campoIngreso = document.getElementById('fecha_ingreso');
+
+        const hoy = new Date();
+        const fechaHoy = [
+            hoy.getFullYear(),
+            String(hoy.getMonth() + 1).padStart(2, '0'),
+            String(hoy.getDate()).padStart(2, '0')
+        ].join('-');
+
+        campoNacimiento.max = fechaHoy;
+        campoIngreso.max = fechaHoy;
+        campoIngreso.value = fechaHoy;
+
+        function agregarCelda(fila, texto) {
+            const celda = document.createElement('td');
+            celda.textContent = texto ?? '';
+            fila.appendChild(celda);
+        }
+
+        async function cargarNinos() {
+            try {
+                const respuesta = await fetch('/api/ninos');
+
+                if (!respuesta.ok) {
+                    throw new Error('No se pudieron consultar los niños.');
+                }
+
+                const ninos = await respuesta.json();
+                listaNinos.replaceChildren();
+
+                if (ninos.length === 0) {
+                    const fila = listaNinos.insertRow();
+                    const celda = fila.insertCell();
+                    celda.colSpan = 5;
+                    celda.textContent = 'No hay niños registrados.';
+                    return;
+                }
+
+                ninos.forEach(nino => {
+                    const fila = listaNinos.insertRow();
+
+                    agregarCelda(fila, nino.nombre_completo);
+                    agregarCelda(fila, nino.fecha_nacimiento);
+                    agregarCelda(fila, nino.fecha_ingreso);
+                    agregarCelda(fila, nino.nombre_grupo);
+                    agregarCelda(fila, nino.estado);
+                });
+            } catch (error) {
+                listaNinos.replaceChildren();
+                const fila = listaNinos.insertRow();
+                const celda = fila.insertCell();
+                celda.colSpan = 5;
+                celda.textContent = error.message;
+            }
+        }
+
+        formulario.addEventListener('submit', async (evento) => {
+            evento.preventDefault();
+
+            mensaje.textContent = '';
+            mensaje.className = 'mensaje';
+
+            const datos = {
+                nombre_completo:
+                    document.getElementById('nombre_completo').value.trim(),
+                fecha_nacimiento: campoNacimiento.value,
+                fecha_ingreso: campoIngreso.value
+            };
+
+            if (datos.fecha_ingreso < datos.fecha_nacimiento) {
+                mensaje.textContent =
+                    'La fecha de ingreso no puede ser anterior al nacimiento.';
+                mensaje.classList.add('error');
+                return;
+            }
+
+            try {
+                const respuesta = await fetch('/api/ninos', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(datos)
+                });
+
+                const resultado = await respuesta.json();
+
+                if (!respuesta.ok) {
+                    throw new Error(
+                        resultado.error || 'No fue posible registrar al niño.'
+                    );
+                }
+
+                mensaje.textContent =
+                    `${resultado.mensaje}\n` +
+                    `Edad: ${resultado.edad_meses} meses.\n` +
+                    `Grupo asignado: ${resultado.grupo}.`;
+
+                mensaje.classList.add('exito');
+
+                formulario.reset();
+                campoIngreso.value = fechaHoy;
+
+                await cargarNinos();
+            } catch (error) {
+                mensaje.textContent = error.message;
+                mensaje.classList.add('error');
+            }
+        });
+
+        cargarNinos();
+    </script>
+</body>
+</html>

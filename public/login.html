@@ -1,0 +1,194 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso | SistemaGuarderia</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #e3f2fd, #e8f5e9);
+        }
+
+        .contenedor {
+            width: 100%;
+            max-width: 400px;
+            padding: 32px;
+            background: white;
+            border-radius: 18px;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.12);
+        }
+
+        .icono {
+            text-align: center;
+            font-size: 46px;
+        }
+
+        h1 {
+            margin-bottom: 8px;
+            text-align: center;
+            color: #245b50;
+            font-size: 25px;
+        }
+
+        .subtitulo {
+            margin-bottom: 28px;
+            text-align: center;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: bold;
+            color: #334155;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 18px;
+            border: 1px solid #cbd5e1;
+            border-radius: 9px;
+            font-size: 15px;
+        }
+
+        input:focus {
+            outline: 2px solid #81c7b0;
+            border-color: #39977b;
+        }
+
+        button {
+            width: 100%;
+            padding: 13px;
+            border: none;
+            border-radius: 9px;
+            background: #287c66;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #206650;
+        }
+
+        button:disabled {
+            opacity: 0.65;
+            cursor: wait;
+        }
+
+        #mensaje {
+            margin-top: 16px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .error {
+            color: #b91c1c;
+        }
+
+        .exito {
+            color: #166534;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="contenedor">
+        <div class="icono" aria-hidden="true">🧸</div>
+
+        <h1>SistemaGuarderia</h1>
+        <p class="subtitulo">Ingresa tus credenciales para continuar</p>
+
+        <form id="formularioLogin">
+            <label for="usuario">Usuario</label>
+            <input
+                type="text"
+                id="usuario"
+                name="usuario"
+                autocomplete="username"
+                required
+            >
+
+            <label for="contrasena">Contraseña</label>
+            <input
+                type="password"
+                id="contrasena"
+                name="contrasena"
+                autocomplete="current-password"
+                required
+            >
+
+            <button type="submit" id="botonLogin">
+                Iniciar sesión
+            </button>
+
+            <p id="mensaje" role="status" aria-live="polite"></p>
+        </form>
+    </main>
+
+    <script>
+        const formulario = document.getElementById('formularioLogin');
+        const mensaje = document.getElementById('mensaje');
+        const boton = document.getElementById('botonLogin');
+
+        formulario.addEventListener('submit', async (evento) => {
+            evento.preventDefault();
+
+            mensaje.textContent = '';
+            mensaje.className = '';
+            boton.disabled = true;
+            boton.textContent = 'Validando...';
+
+            try {
+                const respuesta = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        usuario: document.getElementById('usuario').value,
+                        contrasena: document.getElementById('contrasena').value
+                    })
+                });
+
+                const resultado = await respuesta.json();
+
+                if (!respuesta.ok) {
+                    throw new Error(
+                        resultado.error || 'No se pudo iniciar sesión.'
+                    );
+                }
+
+                mensaje.textContent = 'Acceso correcto. Redirigiendo...';
+                mensaje.className = 'exito';
+
+                // Por ahora, dirigimos al listado existente.
+                window.location.href = '/ninos.html';
+
+            } catch (error) {
+                mensaje.textContent = error.message;
+                mensaje.className = 'error';
+            } finally {
+                boton.disabled = false;
+                boton.textContent = 'Iniciar sesión';
+            }
+        });
+    </script>
+</body>
+</html>
